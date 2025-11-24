@@ -1617,123 +1617,37 @@
             };
         }
             
-        
-      
-    <div class="music-float-icon" id="musicIcon" onclick="toggleBackgroundMusic()" title="Música Ambiental">
-        🎵
-    </div>
 
-   
-    <audio id="backgroundMusic" loop>
-        <source src="bird-singing-312730.mp3" type="audio/mpeg">
-    </audio>
+    const questions = {
+        inicio: [
+            "¿Cómo nos sentimos hoy?",
+            "¿Qué es algo pequeño que te hizo sonreír esta semana?",
+            "¿Cuál es el objetivo de nuestra reunión?"
+        ],
+        durante: [
+            "¿Ya escuchamos todos los puntos de vista?",
+            "¿Nos estamos haciendo entender?",
+            "¿Necesitamos algún ejemplo para entender mejor?"
+        ],
+        cierre: [
+            "¿Cuál es la idea que me llevo de la conversación?",
+            "¿Qué apreciamos de cómo nos escuchamos hoy?",
+            "¿Qué tareas nos llevamos para seguir avanzando?"
+        ]
+    };
 
-    <script>
-        // --- Background music using MP3 file ---
+    let currentPhase = 'inicio';
+    let cardDisplayMode = 'all';
 
-        let isMusicPlaying = false;
-        let backgroundMusic = null;
+    document.addEventListener('DOMContentLoaded', function () {
+        // aquí sigue todo tu código original de inicialización:
+        // - cargar idioma
+        // - renderizar preguntas
+        // - cargar reconocimientos
+        // etc.
+    });
 
-        function initBackgroundMusic() {
-            backgroundMusic = document.getElementById('backgroundMusic');
-        }
 
-        function toggleBackgroundMusic() {
-            const icon = document.getElementById('musicIcon');
-            const currentLang = currentLanguage.split('-')[0];
-            const t = translations[currentLang] || translations.es;
-
-            if (!backgroundMusic) {
-                initBackgroundMusic();
-            }
-            if (!backgroundMusic) return;
-
-            if (!isMusicPlaying) {
-                // Play MP3
-                backgroundMusic.play();
-                isMusicPlaying = true;
-                icon.classList.add('playing');
-                icon.textContent = '🔇';
-                showNotification(t.musicActivated || '🎵 Ambient music activated');
-                playSound('success');
-            } else {
-                // Pause MP3
-                backgroundMusic.pause();
-                isMusicPlaying = false;
-                icon.classList.remove('playing');
-                icon.textContent = '🎵';
-                showNotification(t.musicStopped || '🎵 Music stopped');
-                playSound('click');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', initBackgroundMusic);
-
-        // --- Sound effects ---
-
-        function playSound(type) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            switch (type) {
-                case 'click':
-                    oscillator.frequency.value = 800;
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + 0.1);
-                    break;
-
-                case 'success':
-                    oscillator.frequency.value = 600;
-                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
-                    oscillator.stop(audioContext.currentTime + 0.3);
-                    break;
-
-                case 'delete':
-                    oscillator.frequency.value = 400;
-                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-                    oscillator.stop(audioContext.currentTime + 0.2);
-                    break;
-
-                case 'breath':
-                    oscillator.type = 'sine';
-                    oscillator.frequency.value = 220;
-                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.frequency.exponentialRampToValueAtTime(180, audioContext.currentTime + 0.5);
-                    oscillator.stop(audioContext.currentTime + 1);
-                    break;
-
-                case 'shuffle':
-                    for (let i = 0; i < 3; i++) {
-                        const osc = audioContext.createOscillator();
-                        const gain = audioContext.createGain();
-
-                        osc.connect(gain);
-                        gain.connect(audioContext.destination);
-
-                        osc.frequency.value = 600 + (i * 200);
-                        gain.gain.setValueAtTime(0.1, audioContext.currentTime + (i * 0.05));
-                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + (i * 0.05) + 0.1);
-                        osc.start(audioContext.currentTime + (i * 0.05));
-                        osc.stop(audioContext.currentTime + (i * 0.05) + 0.1);
-                    }
-                    break;
-            }
-        }
-
-        
         
         const questions = {
             inicio: ["¿Cómo nos sentimos hoy?", "¿Qué es algo pequeño que te hizo sonreír esta semana?", "¿Cuál es el objetivo de nuestra reunión?"],
@@ -2018,8 +1932,117 @@
             modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
         });
     </script>
+    <div class="music-float-icon" id="musicIcon" onclick="toggleBackgroundMusic()" title="Música Ambiental">
+    🎵
+</div>
+
+<audio id="backgroundMusic" loop>
+    <source src="bird-singing-312730.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    let isMusicPlaying = false;
+    let backgroundMusic = null;
+
+    function initBackgroundMusic() {
+        backgroundMusic = document.getElementById('backgroundMusic');
+    }
+
+    function toggleBackgroundMusic() {
+        const icon = document.getElementById('musicIcon');
+        const currentLang = currentLanguage.split('-')[0];
+        const t = translations[currentLang] || translations.es;
+
+        if (!backgroundMusic) {
+            initBackgroundMusic();
+        }
+        if (!backgroundMusic) return;
+
+        if (!isMusicPlaying) {
+            backgroundMusic.play();
+            isMusicPlaying = true;
+            icon.classList.add('playing');
+            icon.textContent = '🔇';
+            showNotification(t.musicActivated || '🎵 Ambient music activated');
+            playSound('success');
+        } else {
+            backgroundMusic.pause();
+            isMusicPlaying = false;
+            icon.classList.remove('playing');
+            icon.textContent = '🎵';
+            showNotification(t.musicStopped || '🎵 Music stopped');
+            playSound('click');
+        }
+    }
+
+    function playSound(type) {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        switch (type) {
+            case 'click':
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+                break;
+
+            case 'success':
+                oscillator.frequency.value = 600;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+
+            case 'delete':
+                oscillator.frequency.value = 400;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                oscillator.stop(audioContext.currentTime + 0.2);
+                break;
+
+            case 'breath':
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 220;
+                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(180, audioContext.currentTime + 0.5);
+                oscillator.stop(audioContext.currentTime + 1);
+                break;
+
+            case 'shuffle':
+                for (let i = 0; i < 3; i++) {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+
+                    osc.frequency.value = 600 + (i * 200);
+                    gain.gain.setValueAtTime(0.1, audioContext.currentTime + (i * 0.05));
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + (i * 0.05) + 0.1);
+                    osc.start(audioContext.currentTime + (i * 0.05));
+                    osc.stop(audioContext.currentTime + (i * 0.05) + 0.1);
+                }
+                break;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initBackgroundMusic);
+</script>
+
 </body>
 </html>
+
 
 
 
