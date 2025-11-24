@@ -546,6 +546,9 @@
                 
                 // Notifications
                 translationComplete: "✅ Traducción completada",
+                greenSelected: "ðŸŸ¢ Estoy escuchando atentamente",
+                yellowSelected: "ðŸŸ¡ Tengo una pregunta",
+                orangeSelected: "ðŸŸ  Reformulemos esto",
                 voiceReaderActivated: "🔊 Lector de voz activado",
                 voiceReaderDeactivated: "🔊 Lector de voz desactivado",
                 musicActivated: "🎵 Música ambiental activada",
@@ -651,6 +654,9 @@
                 
                 // Notifications
                 translationComplete: "✅ Translation completed",
+                greenSelected: "ðŸŸ¢ I'm listening carefully",
+                yellowSelected: "ðŸŸ¡ I have a question",
+                orangeSelected: "ðŸŸ  Let's rephrase this",
                 voiceReaderActivated: "🔊 Voice reader activated",
                 voiceReaderDeactivated: "🔊 Voice reader deactivated",
                 musicActivated: "🎵 Ambient music activated",
@@ -861,6 +867,9 @@
                 
                 // Notifications
                 translationComplete: "✅ Traduction terminée",
+                greenSelected: "ðŸŸ¢ J'écoute attentivement",
+                yellowSelected: "ðŸŸ¡ J'ai une question",
+                orangeSelected: "ðŸŸ  Reformulons cela",
                 voiceReaderActivated: "🔊 Lecteur vocal activé",
                 voiceReaderDeactivated: "🔊 Lecteur vocal désactivé",
                 musicActivated: "🎵 Musique d'ambiance activée",
@@ -966,6 +975,9 @@
                 
                 // Notifications
                 translationComplete: "✅ Übersetzung abgeschlossen",
+                greenSelected: "ðŸŸ¢ Ich höre aufmerksam zu",
+                yellowSelected: "ðŸŸ¡ Ich habe eine Frage",
+                orangeSelected: "ðŸŸ  Lassen Sie uns das umformulieren",
                 voiceReaderActivated: "🔊 Sprachausgabe aktiviert",
                 voiceReaderDeactivated: "🔊 Sprachausgabe deaktiviert",
                 musicActivated: "🎵 Ambient-Musik aktiviert",
@@ -1071,6 +1083,9 @@
                 
                 // Notifications
                 translationComplete: "✅ 翻訳完了",
+                greenSelected: "ðŸŸ¢ 注意深く聞いています",
+                yellowSelected: "ðŸŸ¡ 質問があります",
+                orangeSelected: "ðŸŸ  これを言い換えましょう",
                 voiceReaderActivated: "🔊 音声リーダーが有効になりました",
                 voiceReaderDeactivated: "🔊 音声リーダーが無効になりました",
                 musicActivated: "🎵 環境音楽が有効になりました",
@@ -1176,6 +1191,9 @@
                 
                 // Notifications
                 translationComplete: "✅ 翻译完成",
+                greenSelected: "ðŸŸ¢ 我正在认真倾听",
+                yellowSelected: "ðŸŸ¡ 我有一个问题",
+                orangeSelected: "ðŸŸ  让我们重新表述这个",
                 voiceReaderActivated: "🔊 语音阅读器已激活",
                 voiceReaderDeactivated: "🔊 语音阅读器已停用",
                 musicActivated: "🎵 环境音乐已激活",
@@ -1980,6 +1998,23 @@
             playSound('click');
             document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
+    
+    // Get current language and translations
+    const currentLang = currentLanguage.split('-')[0];
+    const t = translations[currentLang] || translations.es;
+    
+    // Use the new translated notification messages
+    const msgs = { 
+        green: t.greenSelected, 
+        yellow: t.yellowSelected, 
+        orange: t.orangeSelected 
+    };
+    
+    showNotification(msgs[color]);
+}
+            playSound('click');
+            document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
             const msgs = { green: '🟢 Escuchando atentamente', yellow: '🟡 Tengo una pregunta', orange: '🟠 Reformulemos esto' };
             showNotification(msgs[color]);
         }
@@ -2028,6 +2063,7 @@
     </script>
 </body>
 </html>
+
 
 
 
