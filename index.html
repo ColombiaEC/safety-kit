@@ -1616,20 +1616,165 @@
                 window.speechSynthesis.getVoices();
             };
         }
+        
+        function createBackgroundMusic() {
+            // Create master gain node
+            musicGainNode = audioContext.createGain();
+            musicGainNode.gain.value = 0;
+            musicGainNode.connect(audioContext.destination);
             
-
-    let currentPhase = 'inicio';
-    let cardDisplayMode = 'all';
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // aquí sigue todo tu código original de inicialización:
-        // - cargar idioma
-        // - renderizar preguntas
-        // - cargar reconocimientos
-        // etc.
-    });
-
-
+            // Peaceful chord progression: C major - G major - A minor - F major
+            const chordProgression = [
+                [261.63, 329.63, 392.00], // C major (C-E-G)
+                [392.00, 493.88, 587.33], // G major (G-B-D)
+                [220.00, 261.63, 329.63], // A minor (A-C-E)
+                [349.23, 440.00, 523.25]  // F major (F-A-C)
+            ];
+            
+            let chordIndex = 0;
+            
+            function playChord() {
+                if (!isMusicPlaying) return;
+                
+                const chord = chordProgression[chordIndex];
+                const chordDuration = 4; // 4 seconds per chord
+                
+                chord.forEach((freq, index) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = freq;
+                    
+                    // Gentle fade in and out
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.08 - (index * 0.02), audioContext.currentTime + 0.5);
+                    gainNode.gain.setValueAtTime(0.08 - (index * 0.02), audioContext.currentTime + chordDuration - 0.5);
+                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + chordDuration);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(musicGainNode);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + chordDuration);
+                });
+                
+                // Add subtle bell-like overtone
+                const bell = audioContext.createOscillator();
+                const bellGain = audioContext.createGain();
+                bell.type = 'sine';
+                bell.frequency.value = chord[0] * 2;
+                bellGain.gain.setValueAtTime(0, audioContext.currentTime);
+                bellGain.gain.linearRampToValueAtTime(0.03, audioContext.currentTime + 0.1);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 2);
+                bell.connect(bellGain);
+                bellGain.connect(musicGainNode);
+                bell.start(audioContext.currentTime);
+                bell.stop(audioContext.currentTime + 2);
+                
+                chordIndex = (chordIndex + 1) % chordProgression.length;
+                
+                if (isMusicPlaying) {
+                    setTimeout(playChord, chordDuration * 1000);
+                }
+            }
+            
+            // Fade in master volume
+            musicGainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2);
+            
+            // Start playing
+            playChord();
+        }
+        
+        function stopBackgroundMusic() {
+            isMusicPlaying = false;
+            if (musicGainNode) {
+                musicGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.5);
+                setTimeout(() => {
+                    if (musicGainNode) {
+                        musicGainNode.disconnect();
+                        musicGainNode = null;
+                    }
+                }, 1500);
+            }
+        }
+        
+        function toggleBackgroundMusic() {
+            const icon = document.getElementById('musicIcon');
+            const currentLang = currentLanguage.split('-')[0];
+            const t = translations[currentLang] || translations.es;
+            
+            if (!isMusicPlaying) {
+                isMusicPlaying = true;
+                createBackgroundMusic();
+                icon.classList.add('playing');
+                icon.textContent = '🔇';
+                showNotification(t.musicActivated || '🎵 Ambient music activated');
+                playSound('success');
+            } else {
+                stopBackgroundMusic();
+                icon.classList.remove('playing');
+                icon.textContent = '🎵';
+                showNotification(t.musicStopped || '🎵 Music stopped');
+                playSound('click');
+            }
+        }
+        
+        function playSound(type) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            switch(type) {
+                case 'click':
+                    oscillator.frequency.value = 800;
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    break;
+                case 'success':
+                    oscillator.frequency.value = 600;
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                    break;
+                case 'delete':
+                    oscillator.frequency.value = 400;
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
+                    oscillator.stop(audioContext.currentTime + 0.2);
+                    break;
+                case 'breath':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 220;
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(180, audioContext.currentTime + 0.5);
+                    oscillator.stop(audioContext.currentTime + 1);
+                    break;
+                case 'shuffle':
+                    for(let i = 0; i < 3; i++) {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(audioContext.destination);
+                        osc.frequency.value = 600 + (i * 200);
+                        gain.gain.setValueAtTime(0.1, audioContext.currentTime + (i * 0.05));
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + (i * 0.05) + 0.1);
+                        osc.start(audioContext.currentTime + (i * 0.05));
+                        osc.stop(audioContext.currentTime + (i * 0.05) + 0.1);
+                    }
+                    break;
+            }
+        }
         
         const questions = {
             inicio: ["¿Cómo nos sentimos hoy?", "¿Qué es algo pequeño que te hizo sonreír esta semana?", "¿Cuál es el objetivo de nuestra reunión?"],
@@ -1914,116 +2059,16 @@
             modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('active'); });
         });
     </script>
-    <div class="music-float-icon" id="musicIcon" onclick="toggleBackgroundMusic()" title="Música Ambiental">
-    🎵
-</div>
-
-<audio id="backgroundMusic" loop>
-    <source src="bird-singing-312730.mp3" type="audio/mpeg">
-</audio>
-
-<script>
-    let isMusicPlaying = false;
-    let backgroundMusic = null;
-
-    function initBackgroundMusic() {
-        backgroundMusic = document.getElementById('backgroundMusic');
-    }
-
-    function toggleBackgroundMusic() {
-        const icon = document.getElementById('musicIcon');
-        const currentLang = currentLanguage.split('-')[0];
-        const t = translations[currentLang] || translations.es;
-
-        if (!backgroundMusic) {
-            initBackgroundMusic();
-        }
-        if (!backgroundMusic) return;
-
-        if (!isMusicPlaying) {
-            backgroundMusic.play();
-            isMusicPlaying = true;
-            icon.classList.add('playing');
-            icon.textContent = '🔇';
-            showNotification(t.musicActivated || '🎵 Ambient music activated');
-            playSound('success');
-        } else {
-            backgroundMusic.pause();
-            isMusicPlaying = false;
-            icon.classList.remove('playing');
-            icon.textContent = '🎵';
-            showNotification(t.musicStopped || '🎵 Music stopped');
-            playSound('click');
-        }
-    }
-
-    function playSound(type) {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        switch (type) {
-            case 'click':
-                oscillator.frequency.value = 800;
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.1);
-                break;
-
-            case 'success':
-                oscillator.frequency.value = 600;
-                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                oscillator.start(audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
-                oscillator.stop(audioContext.currentTime + 0.3);
-                break;
-
-            case 'delete':
-                oscillator.frequency.value = 400;
-                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                oscillator.start(audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(200, audioContext.currentTime + 0.1);
-                oscillator.stop(audioContext.currentTime + 0.2);
-                break;
-
-            case 'breath':
-                oscillator.type = 'sine';
-                oscillator.frequency.value = 220;
-                gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-                oscillator.start(audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(180, audioContext.currentTime + 0.5);
-                oscillator.stop(audioContext.currentTime + 1);
-                break;
-
-            case 'shuffle':
-                for (let i = 0; i < 3; i++) {
-                    const osc = audioContext.createOscillator();
-                    const gain = audioContext.createGain();
-
-                    osc.connect(gain);
-                    gain.connect(audioContext.destination);
-
-                    osc.frequency.value = 600 + (i * 200);
-                    gain.gain.setValueAtTime(0.1, audioContext.currentTime + (i * 0.05));
-                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + (i * 0.05) + 0.1);
-                    osc.start(audioContext.currentTime + (i * 0.05));
-                    osc.stop(audioContext.currentTime + (i * 0.05) + 0.1);
-                }
-                break;
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', initBackgroundMusic);
-</script>
-
 </body>
 </html>
+
+
+
+
+
+
+
+
 
 
 
