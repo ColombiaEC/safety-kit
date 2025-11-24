@@ -2016,13 +2016,7 @@
     
     showNotification(msgs[color]);
 }
-            playSound('click');
-            document.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            const msgs = { green: '🟢 Escuchando atentamente', yellow: '🟡 Tengo una pregunta', orange: '🟠 Reformulemos esto' };
-            showNotification(msgs[color]);
-        }
-        
+            
         function activateBreathing() {
             playSound('breath');
             const effect = document.getElementById('breathingEffect');
@@ -2067,6 +2061,7 @@
     </script>
 </body>
 </html>
+
 
 
 
