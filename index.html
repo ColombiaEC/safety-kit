@@ -1225,9 +1225,8 @@
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
         // Background music generator
-        let musicOscillators = [];
-        let musicGainNode = null;
-        let isMusicPlaying = false;
+         let audioPlayer = null;
+         let isMusicPlaying = false;
         
         // Text-to-speech voice reader
         let isVoiceReading = false;
@@ -1616,109 +1615,47 @@
                 window.speechSynthesis.getVoices();
             };
         }
+
+
+function toggleBackgroundMusic() {
+    const icon = document.getElementById('musicIcon');
+    const currentLang = currentLanguage.split('-')[0];
+    const t = translations[currentLang] || translations.es;
+    
+    if (!isMusicPlaying) {
+        isMusicPlaying = true;
         
-        function createBackgroundMusic() {
-            // Create master gain node
-            musicGainNode = audioContext.createGain();
-            musicGainNode.gain.value = 0;
-            musicGainNode.connect(audioContext.destination);
-            
-            // Peaceful chord progression: C major - G major - A minor - F major
-            const chordProgression = [
-                [261.63, 329.63, 392.00], // C major (C-E-G)
-                [392.00, 493.88, 587.33], // G major (G-B-D)
-                [220.00, 261.63, 329.63], // A minor (A-C-E)
-                [349.23, 440.00, 523.25]  // F major (F-A-C)
-            ];
-            
-            let chordIndex = 0;
-            
-            function playChord() {
-                if (!isMusicPlaying) return;
-                
-                const chord = chordProgression[chordIndex];
-                const chordDuration = 4; // 4 seconds per chord
-                
-                chord.forEach((freq, index) => {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.type = 'sine';
-                    oscillator.frequency.value = freq;
-                    
-                    // Gentle fade in and out
-                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.08 - (index * 0.02), audioContext.currentTime + 0.5);
-                    gainNode.gain.setValueAtTime(0.08 - (index * 0.02), audioContext.currentTime + chordDuration - 0.5);
-                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + chordDuration);
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(musicGainNode);
-                    
-                    oscillator.start(audioContext.currentTime);
-                    oscillator.stop(audioContext.currentTime + chordDuration);
-                });
-                
-                // Add subtle bell-like overtone
-                const bell = audioContext.createOscillator();
-                const bellGain = audioContext.createGain();
-                bell.type = 'sine';
-                bell.frequency.value = chord[0] * 2;
-                bellGain.gain.setValueAtTime(0, audioContext.currentTime);
-                bellGain.gain.linearRampToValueAtTime(0.03, audioContext.currentTime + 0.1);
-                bellGain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 2);
-                bell.connect(bellGain);
-                bellGain.connect(musicGainNode);
-                bell.start(audioContext.currentTime);
-                bell.stop(audioContext.currentTime + 2);
-                
-                chordIndex = (chordIndex + 1) % chordProgression.length;
-                
-                if (isMusicPlaying) {
-                    setTimeout(playChord, chordDuration * 1000);
-                }
-            }
-            
-            // Fade in master volume
-            musicGainNode.gain.linearRampToValueAtTime(1, audioContext.currentTime + 2);
-            
-            // Start playing
-            playChord();
+        // Create audio element if it doesn't exist
+        if (!audioPlayer) {
+            audioPlayer = new Audio('https://raw.githubusercontent.com/ColombiaEC/safety-kit/main/bird-singing-312730.mp3');
+            audioPlayer.loop = true; // Makes the music repeat
+            audioPlayer.volume = 0.3; // Set volume (30%)
         }
         
-        function stopBackgroundMusic() {
+        audioPlayer.play().catch(err => {
+            console.error('Error playing audio:', err);
+            showNotification('❌ Error al reproducir música');
             isMusicPlaying = false;
-            if (musicGainNode) {
-                musicGainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 1.5);
-                setTimeout(() => {
-                    if (musicGainNode) {
-                        musicGainNode.disconnect();
-                        musicGainNode = null;
-                    }
-                }, 1500);
-            }
-        }
+            icon.classList.remove('playing');
+            icon.textContent = '🎵';
+        });
         
-        function toggleBackgroundMusic() {
-            const icon = document.getElementById('musicIcon');
-            const currentLang = currentLanguage.split('-')[0];
-            const t = translations[currentLang] || translations.es;
-            
-            if (!isMusicPlaying) {
-                isMusicPlaying = true;
-                createBackgroundMusic();
-                icon.classList.add('playing');
-                icon.textContent = '🔇';
-                showNotification(t.musicActivated || '🎵 Ambient music activated');
-                playSound('success');
-            } else {
-                stopBackgroundMusic();
-                icon.classList.remove('playing');
-                icon.textContent = '🎵';
-                showNotification(t.musicStopped || '🎵 Music stopped');
-                playSound('click');
-            }
+        icon.classList.add('playing');
+        icon.textContent = '🔇';
+        showNotification(t.musicActivated || '🎵 Música ambiental activada');
+        playSound('success');
+    } else {
+        isMusicPlaying = false;
+        if (audioPlayer) {
+            audioPlayer.pause();
         }
+        icon.classList.remove('playing');
+        icon.textContent = '🎵';
+        showNotification(t.musicStopped || '🎵 Música detenida');
+        playSound('click');
+    }
+}
+        
         
         function playSound(type) {
             const oscillator = audioContext.createOscillator();
@@ -2061,6 +1998,7 @@
     </script>
 </body>
 </html>
+
 
 
 
